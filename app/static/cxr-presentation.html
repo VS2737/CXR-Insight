@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CXR Insight | Radiology AI Research</title><link rel="stylesheet" href="/static/style.css?v=6"></head>
+<body>
+<div class="shell"><aside class="side">
+<div class="brand"><div class="brand-icon">✳</div><div><strong>CXR Insight</strong><small>VISION–LANGUAGE LAB</small></div></div>
+<div class="navtitle">WORKSPACE</div><div class="nav active">◉ &nbsp; Report generation</div><div class="nav">▦ &nbsp; Safety evaluation</div><div class="nav">⌁ &nbsp; Review workflow</div>
+<div class="navtitle">PROJECT INFO</div><div class="sidebar-copy">IU X-Ray dataset<br>EfficientNet-B0 + GPT-2<br>Entity / consistency / Grad-CAM</div>
+<div class="side-bottom"><span class="dot"></span> Research prototype<br><small>ATLAS SkillTech · BTECH CAP 501</small></div>
+</aside><main class="content"><header><div><div class="eyebrow">RESEARCH WORKSPACE / IMAGE-TO-TEXT</div><h1>Chest X-ray report generation</h1><p class="lede">Generate a research draft, inspect safeguards, and route the case for human review.</p></div><span class="stage" id="mode-status">CHECKING MODEL</span></header>
+<div class="warning">Classroom demonstration · Research use only</div>
+<div class="workspace"><section class="panel upload"><div class="section-label">01 &nbsp; IMAGE INPUT</div><h2>Upload chest radiograph</h2><p class="muted">Use only de-identified research images. Accepted formats: PNG/JPEG (12 MB maximum).</p>
+<label id="drop-zone" class="drop"><input id="file" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg"><div id="placeholder"><span class="drop-icon">⇧</span><strong>Choose an image or drag and drop</strong><small>Frontal chest X-ray • PNG / JPEG</small></div><img id="preview" alt="Selected image preview" hidden></label>
+<div class="filename" id="filename">No file selected</div><div class="extra-image-upload"><label for="secondary-file"><strong>Optional additional view (display only)</strong></label><input id="secondary-file" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg"><small id="secondary-filename">No extra view selected. This image is NOT analyzed by the AI.</small></div><label for="projection"><strong>X-ray projection (confirm from dataset)</strong></label><select id="projection"><option value="unknown" selected>Unknown / not confirmed</option><option value="frontal">Frontal (PA/AP)</option><option value="lateral">Lateral (side view)</option></select><p class="muted small">Grad-CAM ROI checking requires a confirmed frontal image; selecting frontal is not automatic verification.</p><button class="primary" id="analyze" disabled>Analyze X-ray <span>→</span></button>
+<div class="hint" id="model-hint">No trained checkpoint? The interface remains functional but does not fabricate a radiology impression.</div></section>
+<section class="panel report"><div class="section-label">02 &nbsp; GENERATED OUTPUT</div><div class="report-head"><h2>Draft impression</h2><span class="tag" id="report-status">NOT GENERATED</span></div>
+<div class="report-actions"><button id="print-report" class="secondary" disabled>Print / Save as PDF</button><span class="muted small">Printout is a draft, never a signed report.</span></div>
+<article class="formal-report" id="formal-report" hidden aria-label="Educational chest X-ray report draft">
+  <div class="formal-header">
+    <div><div class="formal-eyebrow">CXR INSIGHT / AI RADIOLOGY RESEARCH</div>
+      <h3 id="formal-title">CHEST X-RAY RESEARCH REPORT</h3>
+      <p class="formal-subtitle">Structured draft • not a diagnostic or signed laboratory report</p>
+    </div><span class="formal-stamp">NOT FOR CLINICAL USE</span>
+  </div>
+  <div class="formal-meta"><div><strong>Research report ID</strong><span id="r-id"></span></div>
+    <div><strong>Created</strong><span id="r-date"></span></div>
+    <div><strong>Image / study reference</strong><span id="r-study">Not provided</span></div>
+    <div><strong>Model version</strong><span id="r-version"></span></div></div>
+  <div class="radiograph-strip" aria-label="Report radiograph images">
+    <figure><img id="r-primary-image" alt="Primary uploaded research radiograph, analyzed by model"/>
+      <figcaption id="r-primary-caption">Primary image (analyzed)</figcaption></figure>
+    <figure id="r-secondary-figure" hidden><img id="r-secondary-image" alt="Supplemental image displayed only; not analyzed"/>
+      <figcaption id="r-secondary-caption">Supplemental image (not analyzed)</figcaption></figure>
+  </div>
+  <div class="formal-technique"><strong>EXAMINATION</strong> <span id="r-examination"></span>
+    <strong>TECHNIQUE</strong> <span id="r-technique"></span>
+    <strong>CLINICAL HISTORY</strong> <span id="r-history"></span>
+    <strong>COMPARISON</strong> <span id="r-comparison"></span>
+    <strong>PATIENT INFORMATION</strong> <span id="r-patient"></span></div>
+  <section class="clinical-box" aria-label="Model generated radiology prose">
+    <div class="clinical-section"><h4>Findings <small>AI generated — not verified</small></h4><p id="r-findings"></p></div>
+    <div class="clinical-section"><h4>Impression <small>AI generated — not verified</small></h4><p id="r-impression"></p></div>
+  </section>
+  <section class="labels-box" aria-label="Extracted report annotations">
+    <div class="clinical-section"><h4>Observations <small>Quoted from generated report text</small></h4><div id="r-observations" class="report-tags"></div>
+      <p class="annotation-footnote" id="r-normal"></p></div>
+    <div class="clinical-section"><h4>Labels <small>Text extracted, not proven image findings</small></h4><div id="r-labels" class="report-tags"></div></div>
+    <div class="clinical-section"><h4>MeSH Tags <small>Suggested indexing terms only</small></h4><div id="r-mesh" class="report-tags"></div></div>
+  </section>
+  <section class="image-signals-box"><h4>Image Classifier Signals <small>Weak-label model, independent from report text</small></h4>
+    <div id="r-image-signals" class="report-tags"></div><p id="r-image-note" class="annotation-footnote"></p></section>
+  <div class="formal-section formal-qc"><h4>SAFETY / QUALITY REVIEW</h4><p id="r-qc"></p>
+    <p class="annotation-footnote" id="r-source"></p></div>
+  <div class="formal-signoff"><strong>RADIOLOGIST REVIEW</strong><span id="r-radiologist"></span></div>
+  <div class="formal-warning" id="r-disclaimer"></div>
+</article>
+<details class="raw-details"><summary>Show raw model output</summary><div class="report-body" id="report">A trained model is required to generate a report.</div></details>
+<div class="separator"></div><p><strong>Research draft · Human review required</strong></p><details><summary style="cursor:pointer">View safety checks and review notes</summary><div class="section-label">03 &nbsp; SAFETY VALIDATION</div>
+<div class="checks"><div class="check"><div><strong>Entity–image agreement</strong><small>Cross-check against separate X-ray classifier</small></div><span class="unknown" id="entity">PENDING</span></div>
+<div class="check"><div><strong>Self-consistency</strong><small>Agreement across five decodings</small></div><span class="unknown" id="consistency">PENDING</span></div>
+<div class="check"><div><strong>Grad-CAM grounding</strong><small>Class-specific saliency and anatomical heuristic</small></div><span class="unknown" id="gradcam">PENDING</span></div></div>
+<div id="heatmap-container" hidden><h3>Grad-CAM preview</h3><img id="heatmap" alt="Research Grad-CAM overlay"><p class="muted small">Heatmaps are not evidence of medical correctness.</p></div>
+<div class="muted small" id="safety-details" style="white-space:pre-wrap; margin-top:10px"></div><div class="review-warning" id="review-flag">All outputs require human review. This project is not clinically validated.</div></details>
+<div class="review-forms" id="review-form" hidden><h3>Simulated review decision</h3><div class="form-row"><input id="reviewer" placeholder="Reviewer name"><input id="token" type="password" placeholder="REVIEW_TOKEN"></div><select id="decision"><option value="REVISE_DRAFT">Request revision</option><option value="REJECT_DRAFT">Reject draft</option><option value="ACCEPT_DRAFT">Accept for coursework review</option></select><button id="signoff" class="secondary">Record simulated review</button><small id="review-msg"></small></div>
+</section></div>
+<section class="panel history"><div class="section-label">04 &nbsp; REVIEW AUDIT</div><div class="history-title"><div><h2>Review queue</h2><p class="muted">Derived image statistics and decision metadata only; no uploaded images are stored.</p></div><button class="secondary" id="refresh">Refresh</button></div><div id="queue" class="muted">Loading records...</div></section>
+<footer>Research demonstration • No clinical validation • Never upload personally identifiable patient information</footer>
+</main></div><script src="/static/app.js?v=6"></script><script id="cxr-demo-summary">
+(() => {
+  const get = id => document.getElementById(id);
+  const report = get('report');
+  const checks = ['entity', 'consistency', 'gradcam'].map(get);
+  if (!report || checks.some(node => !node)) return;
+  const summary = document.createElement('section');
+  summary.hidden = true;
+  summary.style.cssText = 'border-left:3px solid #26728a;padding:8px 16px;margin:12px 0;background:#eef7fa;color:#15374a';
+  report.before(summary);
+  function update() {
+    const [entity, consistency, grounding] = checks.map(node => node.textContent.trim());
+    if (entity === 'PENDING') { summary.hidden = true; return; }
+    const messages = [
+      entity === 'FAIL' ? 'Image agreement: the draft and the separate image classifier disagree.' : 'Image agreement: ' + entity,
+      'Draft consistency: ' + consistency + ' agreement across generated drafts.',
+      grounding === 'UNKNOWN' && /no positive finding to localize/i.test(get('safety-details')?.textContent || '')
+        ? 'Grad-CAM: the draft names no positive finding to locate.' : 'Grad-CAM grounding: ' + grounding
+    ];
+    const heading = document.createElement('strong');
+    heading.textContent = 'Why this draft needs review';
+    const list = document.createElement('ul');
+    for (const message of messages) {
+      const item = document.createElement('li');
+      item.textContent = message;
+      list.append(item);
+    }
+    summary.replaceChildren(heading, list);
+    if (/\bX{3,}\b/i.test(report.innerText)) {
+      const note = document.createElement('p');
+      note.textContent = 'Text quality: the draft contains a placeholder. The sentence is incomplete.';
+      summary.append(note);
+    }
+    summary.hidden = false;
+  }
+  const observer = new MutationObserver(update);
+  for (const node of [report, ...checks, get('safety-details')].filter(Boolean))
+    observer.observe(node, {childList:true, subtree:true, characterData:true});
+  update();
+})();
+</script></body></html>

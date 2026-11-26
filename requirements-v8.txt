@@ -1,0 +1,4 @@
+# Install in the SAME existing Python 3.11 environment with GPU PyTorch.
+# This preserves the original models and training dataset.
+-r requirements-ml.txt
+safetensors>=0.4.5,<1.0
